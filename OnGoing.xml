@@ -1,0 +1,497 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<PredictionModel
+	xmlns="http://stashsuite.org/PredictionModel.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://stashsuite.org/PredictionModel.xsd PredictionModel.xsd">
+
+    <XAxes>
+        <XAxis id="itemBottom" title="Item"/>
+        <XAxis id="groupBottom" title="Group"/>
+    </XAxes>
+
+    <YAxes>
+        <YAxis id="fractionLeft" title="Fraction" location="left"/>
+        <YAxis id="fractionRight" title="Fraction" location="right"/>
+        <YAxis id="averageGoalsLeft" title="Average goals" location="left"/>
+        <YAxis id="averageGoalsRight" title="Average goals" location="right"/>
+        <YAxis id="fractionOverNormLeft" title="Fraction over norm" location="left"/>
+        <YAxis id="fractionOverNormRight" title="Fraction over norm" location="right"/>
+    </YAxes>
+
+	<EnumerationSets name="ForAllValueInputNeuronsFactory">
+		<EnumerationSet id="statisticsPeriod" description="One year with no multipliers.">
+			<Month skip="0" take="12" multiplier="1"/>
+		</EnumerationSet>
+        <EnumerationSet id="completeEnumerationSet">
+			<Complete multiplier="1"/>
+        </EnumerationSet>
+	</EnumerationSets>
+
+	<InFilters name="ForAllValueInputNeuronsFactory">
+		<ExpressionInFilter id="equalCountOfTeamMatchesIsh" expression="(sfm, h, a) => Math.Abs(h - a) &lt; 4" description="The difference of the statisticsPeriod count of root competition matches that the teams have participated is less than 4.">
+			<RootCompetitionHomeTeamMeasure enumerationSet="statisticsPeriod" function="countOfMatches"/>
+			<RootCompetitionAwayTeamMeasure enumerationSet="statisticsPeriod" function="countOfMatches"/>
+		</ExpressionInFilter>
+	</InFilters>
+
+	<Metrics name="AllValueInputNeuronsFactory">
+		<RootCompetitionMetric id="CompetitionMatchesOver2Fraction" function="over2Fraction" description="Root competition over 2.5 goals fraction"/>
+		<RootCompetitionMetric id="CompetitionMatchGoalsAvg" function="averageGoals" description="Root competition average goals"/>
+		<RootCompetitionHomeTeamMetric id="RootCompetitionHomeTeamOver1Fraction" function="teamOver1Fraction" description="Home team over 1.5 goals fraction in root competition matches"/>
+		<RootCompetitionHomeTeamMetric id="RootCompetitionHomeTeamGoalsAvg" function="teamAverageGoals" description="Home team average goals in root competition matches"/>
+		<RootCompetitionAwayTeamMetric id="RootCompetitionAwayTeamOver1Fraction" function="teamOver1Fraction" description="Away team over 1.5 goals fraction in root competition matches"/>
+		<RootCompetitionAwayTeamMetric id="RootCompetitionAwayTeamGoalsAvg" function="teamAverageGoals" description="Away team average goals in root competition matches"/>
+		<RootCompetitionHomeTeamMetric id="RootCompetitionHomeMatchesOver2Fraction" function="over2Fraction" description="Home team root competition matches over 2.5 goals fraction"/>
+		<RootCompetitionHomeTeamMetric id="RootCompetitionHomeMatchGoalsAvg" function="averageGoals" description="Home team root competition matches average goals"/>
+		<RootCompetitionAwayTeamMetric id="RootCompetitionAwayMatchesOver2Fraction" function="over2Fraction" description="Away team root competition matches over 2.5 goals fraction"/>
+		<RootCompetitionAwayTeamMetric id="RootCompetitionAwayMatchGoalsAvg" function="averageGoals" description="Away team root competition matches average goals"/>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionHomePointsRatio" expression="(sfm, x, y) => x / (y * 3) + 1" description="Home team PointsRatio (TotalPoints / TotalPointsPlayed + 1)">
+			<RootCompetitionHomeTeamMeasure name="TotalTeamThreeForWinPoints" function="totalTeamThreeForWinPoints"/>
+			<RootCompetitionHomeTeamMeasure name="CountOfMatches" function="countOfMatches"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionAwayPointsRatio" expression="(sfm, x, y) => x / (y * 3) + 1" description="Away team PointsRatio (TotalPoints / TotalPointsPlayed + 1)">
+			<RootCompetitionAwayTeamMeasure name="TotalTeamThreeForWinPoints" function="totalTeamThreeForWinPoints"/>
+			<RootCompetitionAwayTeamMeasure name="CountOfMatches" function="countOfMatches"/>
+		</ExpressionMetric>
+
+        <ExpressionMetric id="UnbiasedRootCompetitionAwayScoreRatioEC" expression="(sfm, x, y) => x / y + 1" inFilters="equalCountOfTeamMatchesIsh" description="Away team ScoreRatio (TeamGoals / MatchGoals + 1) having equalCountOfTeamMatchesIsh">
+            <RootCompetitionAwayTeamMeasure name="TeamGoals" function="countOfTeamGoals"/>
+            <RootCompetitionAwayTeamMeasure name="MatchGoals" function="totalCountOfGoals"/>
+        </ExpressionMetric>
+
+        <ExpressionMetric id="UnbiasedRootCompetitionHomeScoreRatio" expression="(sfm, x, y) => x / y + 1" description="Home team ScoreRatio (TeamGoals / MatchGoals + 1)">
+            <RootCompetitionHomeTeamMeasure name="TeamGoals" function="countOfTeamGoals"/>
+            <RootCompetitionHomeTeamMeasure name="MatchGoals" function="totalCountOfGoals"/>
+        </ExpressionMetric>
+
+        <ExpressionMetric id="UnbiasedRootCompetitionAwayScoreRatio" expression="(sfm, x, y) => x / y + 1" description="Away team ScoreRatio (TeamGoals / MatchGoals + 1)">
+            <RootCompetitionAwayTeamMeasure name="TeamGoals" function="countOfTeamGoals"/>
+            <RootCompetitionAwayTeamMeasure name="MatchGoals" function="totalCountOfGoals"/>
+        </ExpressionMetric>
+
+        <ExpressionMetric id="UnbiasedPointsRatioInequality" expression="(sfm, x, y) => x / y" transformers="UnbiasedRootCompetitionHomePointsRatio UnbiasedRootCompetitionAwayPointsRatio" description="Team PointsRatio inequality (UnbiasedRootCompetitionHomePointsRatio / UnbiasedRootCompetitionAwayPointsRatio)"/>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionHomePointsRatio2" expression="(sfm, x, y) => x / (y * 2) + 1" description="Home team PointsRatio2 (TotalPoints2 / TotalPointsPlayed2 + 1)">
+			<RootCompetitionHomeTeamMeasure name="TotalTeamTwoForWinPoints" function="totalTeamTwoForWinPoints"/>
+			<RootCompetitionHomeTeamMeasure name="CountOfMatches" function="countOfMatches"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionAwayPointsRatio2" expression="(sfm, x, y) => x / (y * 2) + 1" description="Away team PointsRatio2 (TotalPoints2 / TotalPointsPlayed2 + 1)">
+			<RootCompetitionAwayTeamMeasure name="TotalTeamTwoForWinPoints" function="totalTeamTwoForWinPoints"/>
+			<RootCompetitionAwayTeamMeasure name="CountOfMatches" function="countOfMatches"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="UnbiasedPointsRatioInequality2" expression="(sfm, x, y) => x / y" transformers="UnbiasedRootCompetitionHomePointsRatio2 UnbiasedRootCompetitionAwayPointsRatio2" description="Team PointsRatio2 inequality (UnbiasedRootCompetitionHomePointsRatio2 / UnbiasedRootCompetitionAwayPointsRatio2)"/>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionHomePointsRatio2EC" expression="(sfm, x, y) => x / (y * 3) + 1" inFilters="equalCountOfTeamMatchesIsh" description="Home team PointsRatio (TotalPoints / TotalPointsPlayed + 1) having equalCountOfTeamMatchesIsh">
+			<RootCompetitionHomeTeamMeasure name="TotalTeamThreeForWinPoints" function="totalTeamThreeForWinPoints" enumerationSet="statisticsPeriod"/>
+			<RootCompetitionHomeTeamMeasure name="CountOfMatches" function="countOfMatches" enumerationSet="statisticsPeriod"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionAwayPointsRatio2EC" expression="(sfm, x, y) => x / (y * 3) + 1" inFilters="equalCountOfTeamMatchesIsh" description="Away team PointsRatio (TotalPoints / TotalPointsPlayed + 1) having equalCountOfTeamMatchesIsh">
+			<RootCompetitionAwayTeamMeasure name="TotalTeamThreeForWinPoints" function="totalTeamThreeForWinPoints" enumerationSet="statisticsPeriod"/>
+			<RootCompetitionAwayTeamMeasure name="CountOfMatches" function="countOfMatches" enumerationSet="statisticsPeriod"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="UnbiasedPointsRatioInequality2EC" expression="(sfm, x, y) => x / y" transformers="UnbiasedRootCompetitionHomePointsRatio2EC UnbiasedRootCompetitionAwayPointsRatio2EC" description="Team PointsRatio2 inequality (UnbiasedRootCompetitionHomePointsRatio2 / UnbiasedRootCompetitionAwayPointsRatio2) having equalCountOfTeamMatchesIsh"/>
+
+		<ExpressionMetric id="UnbiasedScoreRatioInequality" expression="(sfm, x, y) => x / y" transformers="UnbiasedRootCompetitionHomeScoreRatio UnbiasedRootCompetitionAwayScoreRatio" description="Team ScoreRatio inequality (UnbiasedRootCompetitionHomeScoreRatio / UnbiasedRootCompetitionAwayScoreRatio)"/>
+
+		<ExpressionMetric id="UnbiasedScoreRatioInequalityEC" expression="(sfm, x, y) => x / y" transformers="UnbiasedRootCompetitionHomeScoreRatio UnbiasedRootCompetitionAwayScoreRatio" inFilters="equalCountOfTeamMatchesIsh" description="Team ScoreRatio inequality (UnbiasedRootCompetitionHomeScoreRatio / UnbiasedRootCompetitionAwayScoreRatio) having equalCountOfTeamMatchesIsh"/>
+
+		<ExpressionMetric id="UnbiasedRootCompetitionHomeScoreRatioEC" expression="(sfm, x, y) => x / y + 1" inFilters="equalCountOfTeamMatchesIsh" description="Home team ScoreRatio (TeamGoals / MatchGoals + 1) having equalCountOfTeamMatchesIsh">
+			<RootCompetitionHomeTeamMeasure name="TeamGoals" function="countOfTeamGoals"/>
+			<RootCompetitionHomeTeamMeasure name="MatchGoals" function="totalCountOfGoals"/>
+		</ExpressionMetric>
+	</Metrics>
+
+	<EnumerationSets name="ForBaseInputNeuronFactory">
+		<EnumerationSet id="last5Years">
+			<Month skip="0" take="60" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="lastMonth">
+			<Month skip="0" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="lastMonthLast5Years">
+			<Month skip="0" take="1" multiplier="1"/>
+			<Month skip="12" take="1" multiplier="1"/>
+			<Month skip="24" take="1" multiplier="1"/>
+			<Month skip="36" take="1" multiplier="1"/>
+			<Month skip="48" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="thisMonthLast5Years" daysBias="15">
+			<Month skip="0" take="1" multiplier="1"/>
+			<Month skip="12" take="1" multiplier="1"/>
+			<Month skip="24" take="1" multiplier="1"/>
+			<Month skip="36" take="1" multiplier="1"/>
+			<Month skip="48" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="pastWeeksResultStatisticsGroup">
+			<Count skip="0" take="1" multiplier="1000"/>
+			<Count skip="1" take="1" multiplier="100"/>
+			<Count skip="2" take="1" multiplier="10"/>
+			<Count skip="3" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="pastWeeksOverStatisticsGroup">
+			<Count skip="0" take="1" multiplier="1000"/>
+			<Count skip="1" take="1" multiplier="100"/>
+			<Count skip="2" take="1" multiplier="10"/>
+			<Count skip="3" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="pastWeeksCombinedResultStatisticsGroup">
+			<Count skip="0" take="1" multiplier="10"/>
+			<Count skip="1" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="pastWeeksCombinedOverStatisticsGroup">
+			<Count skip="0" take="1" multiplier="100"/>
+			<Count skip="1" take="1" multiplier="10"/>
+			<Count skip="2" take="1" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="last2Matches">
+			<Count skip="0" take="2" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="last3Matches">
+			<Count skip="0" take="3" multiplier="1"/>
+		</EnumerationSet>
+		<EnumerationSet id="last4Matches">
+			<Count skip="0" take="4" multiplier="1"/>
+		</EnumerationSet>
+
+	</EnumerationSets>
+
+	<Metrics name="BaseInputNeuronFactory">
+		<!-- The BaseInputNeuronFactory [Name]FromNorm input neurons had had an INormalizeStrategy strategy. I chose FractionFromNormStrategy for all -->
+		<!-- BaseNormalizeStrategy : INormalizeStrategy -->
+		<!--    FractionFromNormStrategy expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" -->
+		<!--    FractionToFractionStrategy expression="(sfm, x, y) => y" -->
+		<!--    FractionToMinusPlusNormalizeStrategy expression="(sfm, x, y) => y * 2 - 1" -->
+		<!--    OddsFractionFromNormStrategy expression="(sfm, x, y) => 1 / (x / y + 1)" -->
+		<!--    PercentFromNormStrategy expression="(sfm, x, y) => SampleMath.PercentOverNorm(x, y)" -->
+
+		<ExpressionMetric id="PastMonthCompetitionGoalsAvgFromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Competition averageGoals FractionOverNorm([lastMonthLast5Years], [lastMonth])">
+			<RootCompetitionMetric function="averageGoals" enumerationSet="lastMonthLast5Years"/>
+			<RootCompetitionMetric function="averageGoals" enumerationSet="lastMonth"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="PastMonthRegionGoalsAvgFromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Region averageGoals FractionOverNorm([lastMonthLast5Years], [lastMonth])">
+			<RegionMetric function="averageGoals" enumerationSet="lastMonthLast5Years"/>
+			<RegionMetric function="averageGoals" enumerationSet="lastMonth"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="SeasonalCompetitionMatchGoalsAvgFromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Competition averageGoals FractionOverNorm([last5Years], [thisMonthLast5Years])">
+			<RootCompetitionMetric function="averageGoals" enumerationSet="last5Years"/>
+			<RootCompetitionMetric function="averageGoals" enumerationSet="thisMonthLast5Years"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="SeasonalRegionMatchGoalsAvgFromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Region averageGoals FractionOverNorm([last5Years], [thisMonthLast5Years])">
+			<RegionMetric function="averageGoals" enumerationSet="last5Years"/>
+			<RegionMetric function="averageGoals" enumerationSet="thisMonthLast5Years"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="PastMonthCompetitionFractionOver2FromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Competition over2Fraction FractionOverNorm([lastMonthLast5Years], [lastMonth])">
+			<RootCompetitionMetric function="over2Fraction" enumerationSet="lastMonthLast5Years"/>
+			<RootCompetitionMetric function="over2Fraction" enumerationSet="lastMonth"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="PastMonthRegionFractionOver2FromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Region averageGoals over2Fraction([lastMonthLast5Years], [lastMonth])">
+			<RegionMetric function="over2Fraction" enumerationSet="lastMonthLast5Years"/>
+			<RegionMetric function="over2Fraction" enumerationSet="lastMonth"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="SeasonalCompetitionMatchFractionOver2FromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Competition over2Fraction FractionOverNorm([last5Years], [thisMonthLast5Years])">
+			<RootCompetitionMetric function="over2Fraction" enumerationSet="last5Years"/>
+			<RootCompetitionMetric function="over2Fraction" enumerationSet="thisMonthLast5Years"/>
+		</ExpressionMetric>
+
+		<ExpressionMetric id="SeasonalRegionMatchFractionOver2FromNorm" expression="(sfm, x, y) => SampleMath.FractionOverNorm(x, y)" description="Region over2Fraction FractionOverNorm([last5Years], [thisMonthLast5Years])">
+			<RegionMetric function="over2Fraction" enumerationSet="last5Years"/>
+			<RegionMetric function="over2Fraction" enumerationSet="thisMonthLast5Years"/>
+		</ExpressionMetric>
+
+		<CategorizedMetric id="PastWeeksHomeResultGoalsAvg" aggregateExpression="x => x.Average()" description="Home average goals categorized by points for the past 4 matches">
+			<RootCompetitionHomeTeamMeasure function="totalHomeTwoForWinPoints" enumerationSet="pastWeeksResultStatisticsGroup"/>
+			<RootCompetitionHomeTeamMetric function="averageGoals" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksAwayResultGoalsAvg" aggregateExpression="x => x.Average()" description="Away average goals categorized by points for the past 4 matches">
+			<RootCompetitionAwayTeamMeasure function="totalAwayTwoForWinPoints" enumerationSet="pastWeeksResultStatisticsGroup"/>
+			<RootCompetitionAwayTeamMetric function="averageGoals" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksHomeResultFractionOver2" aggregateExpression="x => x.Average()" description="Home average over 2.5 goals fraction categorized by points for the past 4 matches">
+			<RootCompetitionHomeTeamMeasure function="totalHomeTwoForWinPoints" enumerationSet="pastWeeksResultStatisticsGroup"/>
+			<RootCompetitionHomeTeamMetric function="over2Fraction" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksAwayResultFractionOver2" aggregateExpression="x => x.Average()" description="Away average over 2.5 goals fraction categorized by points for the past 4 matches">
+			<RootCompetitionAwayTeamMeasure function="totalAwayTwoForWinPoints" enumerationSet="pastWeeksResultStatisticsGroup"/>
+			<RootCompetitionAwayTeamMetric function="over2Fraction" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksCombinedResultGoalsAvg" aggregateExpression="x => x.Average()" description="Average goals categorized by points for the past 2 matches">
+			<ExpressionMeasure expression="(sfm, x, y) => x * 10000 + y">
+				<RootCompetitionHomeTeamMeasure function="totalHomeTwoForWinPoints" enumerationSet="pastWeeksCombinedResultStatisticsGroup"/>
+				<RootCompetitionAwayTeamMeasure function="totalAwayTwoForWinPoints" enumerationSet="pastWeeksCombinedResultStatisticsGroup"/>
+			</ExpressionMeasure>
+			<RootCompetitionHomeTeamMetric function="averageGoals" enumerationSet="last2Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksCombinedResultFractionOver2" aggregateExpression="x => x.Average()" description="Average over 2.5 goals fraction categorized by points for the past 2 matches">
+			<ExpressionMeasure expression="(sfm, x, y) => x * 10000 + y">
+				<RootCompetitionHomeTeamMeasure function="totalHomeTwoForWinPoints" enumerationSet="pastWeeksCombinedResultStatisticsGroup"/>
+				<RootCompetitionAwayTeamMeasure function="totalAwayTwoForWinPoints" enumerationSet="pastWeeksCombinedResultStatisticsGroup"/>
+			</ExpressionMeasure>
+			<RootCompetitionHomeTeamMetric function="over2Fraction" enumerationSet="last2Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksHomeOverGoalsAvg" aggregateExpression="x => x.Average()" description="Home average goals categorized by matches over 2 for the past 4 matches">
+			<RootCompetitionHomeTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksOverStatisticsGroup"/>
+			<RootCompetitionHomeTeamMetric function="averageGoals" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksAwayOverGoalsAvg" aggregateExpression="x => x.Average()" description="Away average goals categorized by matches over 2 for the past 4 matches">
+			<RootCompetitionAwayTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksOverStatisticsGroup"/>
+			<RootCompetitionAwayTeamMetric function="averageGoals" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksHomeOverFractionOver2" aggregateExpression="x => x.Average()" description="Home average over 2.5 goals fraction categorized by matches over 2 for the past 4 matches">
+			<RootCompetitionHomeTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksOverStatisticsGroup"/>
+			<RootCompetitionHomeTeamMetric function="over2Fraction" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksAwayOverFractionOver2" aggregateExpression="x => x.Average()" description="Away average over 2.5 goals fraction categorized by matches over 2 for the past 4 matches">
+			<RootCompetitionAwayTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksOverStatisticsGroup"/>
+			<RootCompetitionAwayTeamMetric function="over2Fraction" enumerationSet="last4Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksCombinedOverGoalsAvg" aggregateExpression="x => x.Average()" description="Average goals categorized by matches over 2 for the past 3 matches">
+			<ExpressionMeasure expression="(sfm, x, y) => x * 10000 + y">
+				<RootCompetitionHomeTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksCombinedOverStatisticsGroup"/>
+				<RootCompetitionAwayTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksCombinedOverStatisticsGroup"/>
+			</ExpressionMeasure>
+			<RootCompetitionHomeTeamMetric function="averageGoals" enumerationSet="last3Matches"/>
+		</CategorizedMetric>
+
+		<CategorizedMetric id="PastWeeksCombinedOverFractionOver2" aggregateExpression="x => x.Average()" description="Average over 2.5 goals fraction categorized by matches over 2 for the past 3 matches">
+			<ExpressionMeasure expression="(sfm, x, y) => x * 10000 + y">
+				<RootCompetitionHomeTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksCombinedOverStatisticsGroup"/>
+				<RootCompetitionAwayTeamMeasure function="countOfMatchesOver2" enumerationSet="pastWeeksCombinedOverStatisticsGroup"/>
+			</ExpressionMeasure>
+			<RootCompetitionHomeTeamMetric function="over2Fraction" enumerationSet="last3Matches"/>
+		</CategorizedMetric>
+	</Metrics>
+
+	<FeatureSets name="InputNeuronFlagsGroups">
+		<FeatureSet id="CompetitionMatches" metrics="CompetitionMatchesOver2Fraction CompetitionMatchGoalsAvg"/>
+
+		<FeatureSet id="TeamOver1Fraction" metrics="RootCompetitionHomeTeamOver1Fraction RootCompetitionAwayTeamOver1Fraction"/>
+		<FeatureSet id="TeamGoalsAvg" metrics="RootCompetitionHomeTeamGoalsAvg RootCompetitionAwayTeamGoalsAvg"/>
+		<!--<FeatureSet id="TeamPointsRatio" featureSets="RootCompetitionHomePointsRatio RootCompetitionAwayPointsRatio"/>-->
+		<FeatureSet id="TeamMatchesOver2Fraction" metrics="RootCompetitionHomeMatchesOver2Fraction RootCompetitionAwayMatchesOver2Fraction"/>
+		<FeatureSet id="TeamMatchGoalsAvg" metrics="RootCompetitionHomeMatchGoalsAvg RootCompetitionAwayMatchGoalsAvg"/>
+		<FeatureSet id="TeamTeam" featureSets="TeamOver1Fraction TeamGoalsAvg"/>
+		<FeatureSet id="TeamMatches" featureSets="TeamMatchesOver2Fraction TeamMatchGoalsAvg"/>
+		<FeatureSet id="Team" featureSets="TeamTeam TeamMatches"/>
+
+		<FeatureSet id="UnbiasedTeamPointsRatio2EC" metrics="UnbiasedRootCompetitionHomePointsRatio2EC UnbiasedRootCompetitionAwayPointsRatio2EC"/>
+		<FeatureSet id="UnbiasedTeamScoreRatioEC" metrics="UnbiasedRootCompetitionHomeScoreRatioEC UnbiasedRootCompetitionAwayScoreRatioEC"/>
+		<FeatureSet id="Unbiased2EC" metrics="UnbiasedPointsRatioInequality2EC  UnbiasedScoreRatioInequalityEC" featureSets="UnbiasedTeamPointsRatio2EC UnbiasedTeamScoreRatioEC"/>
+
+		<FeatureSet id="PastMonthGoalsAvgFromNorm" metrics="PastMonthCompetitionGoalsAvgFromNorm PastMonthRegionGoalsAvgFromNorm"/>
+		<FeatureSet id="SeasonalMatchGoalsAvgFromNorm" metrics="SeasonalCompetitionMatchGoalsAvgFromNorm SeasonalRegionMatchGoalsAvgFromNorm"/>
+		<FeatureSet id="CompetitionGoalsAvgFromNorm" metrics="PastMonthCompetitionGoalsAvgFromNorm SeasonalCompetitionMatchGoalsAvgFromNorm"/>
+        <FeatureSet id="RegionGoalsAvgFromNorm" metrics="PastMonthRegionGoalsAvgFromNorm SeasonalRegionMatchGoalsAvgFromNorm"/>
+		<FeatureSet id="GoalsAvgFromNorm" featureSets="PastMonthGoalsAvgFromNorm SeasonalMatchGoalsAvgFromNorm"/>
+
+		<FeatureSet id="PastMonthFractionOver2FromNorm" metrics="PastMonthCompetitionFractionOver2FromNorm PastMonthRegionFractionOver2FromNorm"/>
+		<FeatureSet id="SeasonalMatchFractionOver2FromNorm" metrics="SeasonalCompetitionMatchFractionOver2FromNorm SeasonalRegionMatchFractionOver2FromNorm"/>
+		<FeatureSet id="CompetitionFractionOver2FromNorm" metrics="PastMonthCompetitionFractionOver2FromNorm SeasonalCompetitionMatchFractionOver2FromNorm"/>
+		<FeatureSet id="RegionFractionOver2FromNorm" metrics="PastMonthRegionFractionOver2FromNorm SeasonalRegionMatchFractionOver2FromNorm"/>
+		<FeatureSet id="FractionOver2FromNorm" featureSets="PastMonthFractionOver2FromNorm SeasonalMatchFractionOver2FromNorm"/>
+		
+		<FeatureSet id="PastWeeksResultGoalsAvg" metrics="PastWeeksHomeResultGoalsAvg PastWeeksAwayResultGoalsAvg PastWeeksCombinedResultGoalsAvg"/>
+		
+		<FeatureSet id="PastWeeksOverGoalsAvg" metrics="PastWeeksHomeOverGoalsAvg PastWeeksAwayOverGoalsAvg PastWeeksCombinedOverGoalsAvg"/>
+		
+		<FeatureSet id="PastWeeksResultFractionOver2" metrics="PastWeeksHomeResultFractionOver2 PastWeeksAwayResultFractionOver2 PastWeeksCombinedResultFractionOver2"/>
+		
+		<FeatureSet id="PastWeeksOverFractionOver2" metrics="PastWeeksHomeOverFractionOver2 PastWeeksAwayOverFractionOver2 PastWeeksCombinedOverFractionOver2"/>
+	</FeatureSets>
+
+	<FeatureSets>
+		<FeatureSet id="FlatPreferValueGoalsInequality" featureSets="CompetitionMatches Team RegionGoalsAvgFromNorm RegionFractionOver2FromNorm PastWeeksResultGoalsAvg PastWeeksOverGoalsAvg PastWeeksResultFractionOver2 PastWeeksOverFractionOver2">
+			<!--<Unbiased2EC goalsFractionFromNormStrategy-->
+			<KeyValueMetric id="UnbiasedRootCompetitionHomePointsRatio2EC_CompetitionMatchGoalsAvg_KeyValue" keyMetric="UnbiasedRootCompetitionHomePointsRatio2EC" valueMetric="CompetitionMatchGoalsAvg" aggregateExpression="x => x.Average()"/>
+			<KeyValueMetric id="UnbiasedRootCompetitionAwayPointsRatio2EC_CompetitionMatchGoalsAvg_KeyValue" keyMetric="UnbiasedRootCompetitionAwayPointsRatio2EC" valueMetric="CompetitionMatchGoalsAvg" aggregateExpression="x => x.Average()"/>
+			<KeyValueMetric id="UnbiasedRootCompetitionHomeScoreRatioEC_CompetitionMatchGoalsAvg_KeyValue" keyMetric="UnbiasedRootCompetitionHomeScoreRatioEC" valueMetric="CompetitionMatchGoalsAvg" aggregateExpression="x => x.Average()"/>
+			<KeyValueMetric id="UnbiasedRootCompetitionAwayScoreRatioEC_CompetitionMatchGoalsAvg_KeyValue" keyMetric="UnbiasedRootCompetitionAwayScoreRatioEC" valueMetric="CompetitionMatchGoalsAvg" aggregateExpression="x => x.Average()"/>
+		</FeatureSet>
+	</FeatureSets>
+
+	<EnumerationSets name="ForPredictionNetworks">
+		<EnumerationSet id="last5Matches">
+			<Count skip="0" take="5" multiplier="1"/>
+		</EnumerationSet>
+	</EnumerationSets>
+
+	<InFilters name="ForPredictionNetworks">
+		<ExpressionInFilter id="teamsHave5ConsecutiveMatches" expression="(sfm, x, y) => x == 5 &amp;&amp; y == 5" description="Teams have at least 5 consecutive matches">
+			<RootCompetitionHomeTeamMeasure enumerationSet="last5Matches" function="streakCount"/>
+			<RootCompetitionAwayTeamMeasure enumerationSet="last5Matches" function="streakCount"/>
+		</ExpressionInFilter>
+
+		<AndInFilter id="defaultInFilter" description="OddsCalculatorSet.GetDefaultCondition(12, true)">
+			<ExpressionInFilter expression="sfm => sfm.Date >= Globals.UtcDate20000101" name="AfterMinDate" description="Earliest match date to include (2000-01-01)"/>
+			<ExpressionInFilter expression="sfm => sfm.SwCompetition.SwTournamentType == StashSuite.Data.Stash.Enums.SwTournamentType.ClubDomesticLeague" name="ClubDomesticLeague" description="Only ClubDomesticLeague matches"/>
+			<ExpressionInFilter expression="(sfm, c) => c >= 6" name="ActiveMonths" description="statisticsPeriod RootCompetition ActiveMonths >= 6">
+				<RootCompetitionMeasure enumerationSet="statisticsPeriod" function="countOfActiveMonths"/>
+			</ExpressionInFilter>
+			<ExpressionInFilter expression="(sfm, c) => c >= 150" name="CompetitionCountOfMatches" description="statisticsPeriod RootCompetition CountOfMatches >= 150">
+				<RootCompetitionMeasure enumerationSet="statisticsPeriod" function="countOfMatches"/>
+			</ExpressionInFilter>
+			<ExpressionInFilter expression="(sfm, h, a) => h >= 20 &amp;&amp; a >= 20" name="TeamCountOfMatches" description="statisticsPeriod Teams CountOfMatches >= 20">
+				<RootCompetitionHomeTeamMeasure enumerationSet="statisticsPeriod" function="countOfMatches"/>
+				<RootCompetitionAwayTeamMeasure enumerationSet="statisticsPeriod" function="countOfMatches"/>
+			</ExpressionInFilter>
+			<ExpressionInFilter expression="(sfm, h, a) => h == a" name="TeamsDomesticLeagueChanges" description="statisticsPeriod Teams DomesticLeagueChanges are equal">
+				<RootCompetitionHomeTeamMeasure enumerationSet="statisticsPeriod" function="domesticLeagueChangesHash"/>
+				<RootCompetitionAwayTeamMeasure enumerationSet="statisticsPeriod" function="domesticLeagueChangesHash"/>
+			</ExpressionInFilter>
+		</AndInFilter>
+	</InFilters>
+
+    <Predictees>
+        <OverUnderGoalsPredictee id="over25Predictee" description="Over 2.5 goals" goals="2"/>
+    </Predictees>
+
+    <SampleSetFactories>
+        <SampleSetFactory id="FlatPreferValueGoalsInequalitySampleSetFactoryId" description="For FlatPreferValueGoalsInequality" enumerationSet="statisticsPeriod" inFilters="defaultInFilter teamsHave5ConsecutiveMatches" featureSets="FlatPreferValueGoalsInequality"/>
+    </SampleSetFactories>
+
+	<MetricsMatrices>
+        <MatrixGroupMetricsMatrix id="featuresByBookmakerProbability0" sampleSet="self" sliceToRowsHavingBookmakerBets="true" matrixGroup="features" sortGroup="bookmakerProbabilities" sortColumnIndex="0"/>
+        <GroupingMetricsMatrix id="groupedFeaturesByBookmakerProbability0" countOfGroups="200" aggregate="average" acceptSmallerGroupCount="true" metricsMatrix="featuresByBookmakerProbability0"/>
+
+        <ColumnMetricsMatrix id="bookmakerProbability0ByBookmakerProbability0" columnIndex="0">
+            <MatrixGroupMetricsMatrix sampleSet="self" sliceToRowsHavingBookmakerBets="true" matrixGroup="bookmakerProbabilities" sortGroup="bookmakerProbabilities" sortColumnIndex="0"/>
+        </ColumnMetricsMatrix>
+        <GroupingMetricsMatrix id="groupedBookmakerProbability0ByBookmakerProbability0" countOfGroups="200" aggregate="average" acceptSmallerGroupCount="true" metricsMatrix="bookmakerProbability0ByBookmakerProbability0"/>
+
+        <ColumnMetricsMatrix id="label0AsZerosAndOnesByFeature0" columnIndex="0">
+            <MatrixGroupMetricsMatrix sampleSet="self" matrixGroup="labelsAsZerosAndOnes" sortGroup="features" sortColumnIndex="0"/>
+        </ColumnMetricsMatrix>
+        <GroupingMetricsMatrix id="groupedLabel0AsZerosAndOnesByFeature0" countOfGroups="200" aggregate="average" acceptSmallerGroupCount="true" metricsMatrix="label0AsZerosAndOnesByFeature0"/>
+
+        <MatrixGroupMetricsMatrix id="featuresByFeature0" sampleSet="self" matrixGroup="features" sortGroup="features" sortColumnIndex="0"/>
+        <GroupingMetricsMatrix id="groupedFeaturesByFeature0" countOfGroups="200" aggregate="average" acceptSmallerGroupCount="true" metricsMatrix="featuresByFeature0"/>
+
+        <ColumnMetricsMatrix id="bookmakerProbability0ByBookmakerFeature0" columnIndex="0">
+            <MatrixGroupMetricsMatrix sampleSet="self" sliceToRowsHavingBookmakerBets="true" matrixGroup="bookmakerProbabilities" sortGroup="features" sortColumnIndex="0"/>
+        </ColumnMetricsMatrix>
+        <GroupingMetricsMatrix id="groupedBookmakerProbability0Feature0" countOfGroups="200" aggregate="average" acceptSmallerGroupCount="true" metricsMatrix="bookmakerProbability0ByBookmakerFeature0"/>
+    </MetricsMatrices>
+	
+    <DetailsViews>
+		<DetailsViewGroup id="fractionFeatureOutputGraphDetailsView" description="Graphs for single metric having fraction outputs">
+            <GraphDetailsView title="Outputs by Bookmaker Probabilities" yAxis="fractionLeft">
+                <DataSeriesSection metricsMatrices="featuresByBookmakerProbability0 bookmakerProbability0ByBookmakerProbability0" xAxis="itemBottom"/>
+                <DataSeriesSection metricsMatrices="groupedFeaturesByBookmakerProbability0" xAxis="groupBottom"/>
+            </GraphDetailsView>
+
+            <GraphDetailsView title="Grouped Averages by Output" yAxis="fractionLeft">
+                <DataSeriesSection metricsMatrices="groupedLabel0AsZerosAndOnesByFeature0 groupedFeaturesByFeature0 groupedBookmakerProbability0Feature0"/>
+            </GraphDetailsView>
+        </DetailsViewGroup>
+
+		<DetailsViewGroup id="averageGoalsFeatureOutputGraphDetailsView" description="Graphs for single metric having average goals outputs">
+            <GraphDetailsView title="Outputs by Bookmaker Probabilities" yAxis="averageGoalsLeft">
+                <DataSeriesSection metricsMatrices="featuresByBookmakerProbability0" xAxis="itemBottom"/>
+                <DataSeriesSection metricsMatrices="bookmakerProbability0ByBookmakerProbability0" xAxis="itemBottom" yAxis="fractionRight"/>
+                <DataSeriesSection metricsMatrices="groupedFeaturesByBookmakerProbability0" xAxis="groupBottom"/>
+            </GraphDetailsView>
+
+            <GraphDetailsView title="Grouped Averages by Output" yAxis="averageGoalsLeft">
+                <DataSeriesSection metricsMatrices="groupedLabel0AsZerosAndOnesByFeature0" yAxis="fractionRight"/>
+                <DataSeriesSection metricsMatrices="groupedFeaturesByFeature0"/>
+                <DataSeriesSection metricsMatrices="groupedBookmakerProbability0Feature0" yAxis="fractionRight"/>
+            </GraphDetailsView>
+        </DetailsViewGroup>
+
+		<DetailsViewGroup id="fractionOverNormFeatureOutputGraphDetailsView" description="Graphs for single metric having fraction over norm outputs">
+            <GraphDetailsView title="Outputs by Bookmaker Probabilities" yAxis="fractionOverNormLeft">
+                <DataSeriesSection metricsMatrices="featuresByBookmakerProbability0" xAxis="itemBottom"/>
+                <DataSeriesSection metricsMatrices="bookmakerProbability0ByBookmakerProbability0" xAxis="itemBottom" yAxis="fractionRight"/>
+                <DataSeriesSection metricsMatrices="groupedFeaturesByBookmakerProbability0" xAxis="groupBottom"/>
+            </GraphDetailsView>
+
+            <GraphDetailsView title="Grouped Averages by Output" yAxis="fractionOverNormLeft">
+                <DataSeriesSection metricsMatrices="groupedLabel0AsZerosAndOnesByFeature0" yAxis="fractionRight"/>
+                <DataSeriesSection metricsMatrices="groupedFeaturesByFeature0"/>
+                <DataSeriesSection metricsMatrices="groupedBookmakerProbability0Feature0" yAxis="fractionRight"/>
+            </GraphDetailsView>
+        </DetailsViewGroup>
+    </DetailsViews>
+
+    <SampleSetFactories>
+        <SampleSetFactory id="ongoingSampleSetFactoryId" description="For progressive construction" enumerationSet="statisticsPeriod" inFilters="defaultInFilter teamsHave5ConsecutiveMatches">
+            <RootCompetitionMetric enumerationSet="completeEnumerationSet" function="over2Fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            <TrainSetMetric enumerationSet="completeEnumerationSet" function="over2Fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            <CompleteMetric enumerationSet="completeEnumerationSet" function="over2Fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+
+            <ExpressionMetric name="CompetitionMatchesOver2Fraction_FractionOverNorm" expression="(swfm, norm, value) => SampleMath.FractionOverNorm(norm, value)" detailsViews="fractionOverNormFeatureOutputGraphDetailsView">
+                <TrainSetMetric enumerationSet="completeEnumerationSet" function="over2Fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+                <RootCompetitionMetric name="CompetitionMatchesOver2Fraction" function="over2Fraction" description="Root competition over 2.5 goals fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            </ExpressionMetric>
+
+            <ExpressionMetric name="RegionMatchesOver2Fraction_FractionOverNorm" expression="(swfm, norm, value) => SampleMath.FractionOverNorm(norm, value)" detailsViews="fractionOverNormFeatureOutputGraphDetailsView">
+                <TrainSetMetric enumerationSet="completeEnumerationSet" function="over2Fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+                <RegionMetric name="RegionMatchesOver2Fraction" function="over2Fraction" description="Root Region over 2.5 goals fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            </ExpressionMetric>
+
+            <RootCompetitionMetric name="CompetitionMatchesOver2Fraction" function="over2Fraction" description="Root competition over 2.5 goals fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            <KeyValueMetric name="CompetitionMatchesOver2Fraction_GoalsAvg" aggregateExpression="x => x.Average()" detailsViews="averageGoalsFeatureOutputGraphDetailsView">
+                <RootCompetitionMetric name="CompetitionMatchesOver2Fraction" function="over2Fraction" description="Root competition over 2.5 goals fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+                <RootCompetitionMetric name="CompetitionMatchGoalsAvg" function="averageGoals" description="Root competition average goals" detailsViews="averageGoalsFeatureOutputGraphDetailsView"/>
+            </KeyValueMetric>
+
+            <RootCompetitionMetric name="CompetitionMatchGoalsAvg" function="averageGoals" description="Root competition average goals" detailsViews="averageGoalsFeatureOutputGraphDetailsView"/>
+            <KeyValueMetric name="CompetitionMatchGoalsAvg_Over2Fraction" aggregateExpression="x => x.Average()" detailsViews="fractionFeatureOutputGraphDetailsView">
+                <RootCompetitionMetric name="CompetitionMatchGoalsAvg" function="averageGoals" description="Root competition average goals" detailsViews="averageGoalsFeatureOutputGraphDetailsView"/>
+                <RootCompetitionMetric name="CompetitionMatchesOver2Fraction" function="over2Fraction" description="Root competition over 2.5 goals fraction" detailsViews="fractionFeatureOutputGraphDetailsView"/>
+            </KeyValueMetric>
+        </SampleSetFactory>
+    </SampleSetFactories>
+
+    <EncogNetworks>
+        <EncogNetwork id="tanhLayerFactory" name="T*2+1T" description="new SimpleLayersFactory&lt;ActivationTANH, ActivationTANH&gt;(&quot;T*2+1T&quot;, neurons =&gt; neurons.Length * 2 + 1);">
+            <InputEncogLayer activationFunction="null" hasBias="true"/>
+            <HiddenEncogLayer activationFunction="tanh" hasBias="true" getNeuronCountExpression="x => x * 2 + 1"/>
+            <OutputEncogLayer activationFunction="tanh" hasBias="false"/>
+        </EncogNetwork>
+        <EncogNetwork id="tanhTanhLayerFactory" name="T2*2+1T" description="new TwoHiddenLayersFactory&lt;ActivationTANH, ActivationTANH, ActivationTANH&gt;(&quot;T2*2+1T&quot;, neurons =&gt; neurons.Length * 2 + 1, neurons =&gt; neurons.Length * 2 + 1);">
+            <InputEncogLayer activationFunction="null" hasBias="true"/>
+            <HiddenEncogLayer activationFunction="tanh" hasBias="true" getNeuronCountExpression="x => x * 2 + 1"/>
+            <HiddenEncogLayer activationFunction="tanh" hasBias="true" getNeuronCountExpression="x => x * 2 + 1"/>
+            <OutputEncogLayer activationFunction="tanh" hasBias="false"/>
+        </EncogNetwork>
+    </EncogNetworks>
+
+    <EncogTrainers>
+        <ResilientPropagationTrainer id="resilientPropagationTrainer" name="resilientPropagationX2Trainer" maxRowIterations="5000000000"/>
+        <ResilientPropagationTrainer id="resilientPropagationX2Trainer" name="resilientPropagationX2Trainer" maxRowIterations="10000000000"/>
+    </EncogTrainers>
+
+    <ProbabilityPredictors>
+        <EncogPredictor id="activeOddsCalculatorRepositoryOver" description="Active OddsCalculatorRepository Over" index="0" labelLossValue="-1.0" labelWinValue="1.0" enableKFold="false" outputToProbabilityExpression="x => x / 2 + 0.5" encogNetwork="tanhLayerFactory" encogTrainer="resilientPropagationX2Trainer"/>
+    </ProbabilityPredictors>
+
+    <!--<Predictators>
+        <Predictator id="activeOddsCalculatorRepositoryOver25" description="Active OddsCalculatorRepository Over 2.5" sampleSetFactory="FlatPreferValueGoalsInequalitySampleSetFactoryId" predictee="over25Predictee" probabilityPredictors="activeOddsCalculatorRepositoryOver"/>
+    </Predictators>-->
+
+    <Predictators>
+        <Predictator id="ongoingOver25" name="Ongoing Over 2.5" description="Over 2.5" sampleSetFactory="ongoingSampleSetFactoryId" predictee="over25Predictee" probabilityPredictors="activeOddsCalculatorRepositoryOver"/>
+    </Predictators>
+</PredictionModel>
